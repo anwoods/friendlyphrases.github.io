@@ -1,11 +1,15 @@
 var synonyms = {}; //dictionary key being the word, value being list of snynonms
 var afinn = afinn_en; //afinn english
 var cursewords = cursewords_list["Sheet1"]; // cursewords 
-var base_link = "http://words.bighugelabs.com/api/2/57fb326159dfcfd866e6778b33b451fb/";
+var base_link = "http://words.bighugelabs.com/api/2/7fe320022e2c6c0c2349d7401b242d9d/";
 var jsonResult;
 var data;
-var phrase = "I am bad bitch getting dick";
+var bool_ = false;
+var impword = "";
+var count = 0;
+var phrase = "I am a bad bitch getting dick";
 var negative_words = [];
+var words_afinn_dict = {};
 negative_words = [];
 
 $( document ).ready(function()
@@ -24,94 +28,82 @@ function get_negative_words(phrase){
             negative_words.push(phrase_words[i]);
         }
     }
-    get_synonyms(negative_words);
+    get_synonyms(phrase, true, false);
 };
 
-
-/*
-    function for returning synonyms associated with a word
-*/
-// function get_synonyms(negative_words){
-//     //checking if the word is a curse word, because if it's a curse word, the thesuarus api will not recognize and return a FAIL
-//     for (var i = 0; i < negative_words.length; i++){
-//         if (negative_words[i] in cursewords){
-//             synonyms[negative_words[i]] = cursewords[negative_words[i]]; // list of synonyms for negativewords[i]
-//         } else {
-//             base_link += (negative_words[i] + "/json");
-//             //retrieve the synonyms using jquery from thesaurus api 
-//             new_phrase = phrase;
-//             var list = [];
-//             $.ajax({
-//                 type: 'GET',
-//                 url: base_link,
-//                 dataType: 'json',
-//                 crossDomain: true,
-//                 success: function(data) {
-//                     jsonResult = data;
-//                     list = negative_words;
-//                     dict_temp = {};
-//                     dict_temp["word"] = list[0];
-//                     dict_temp["synonyms"] = jsonResult["adjective"]["syn"];
-//                     //console.log(synonyms);
-//                     console.log(negative_words[i]);
-//                     new_phrase = new_phrase.replace(negative_words[i], dict_temp["synonyms"][1]);
-//                     console.log(new_phrase);
-//                 }
-//             });
-//             //resetting the link
-//             base_link = "http://words.bighugelabs.com/api/2/57fb326159dfcfd866e6778b33b451fb/";
-//         }
-//     }
-//     replace_bad_words(phrase, synonyms);
-// };
-
-function get_synonyms(){
+function get_synonyms(phrase, bool_, bool_include){
+    var curse = false;
     new_phrase = phrase;
     var i = 0;
+    var afinn_score = 0;
     temp_base_link = base_link;
+    words_afinn_dict = {};
+    if (bool_include){
+        afinn_score = 0;
+    }
     for (i = 0; i < negative_words.length; i++){
+        if (bool_ == false){
+            i = i + 1;
+            if (i == negative_words.length){
+                break;
+            }
+            bool_ = true;
+        }
         base_link += (negative_words[i] + "/json");
-        console.log("base link: " + base_link);
-        if (negative_words[i] in cursewords){ 
+        if (negative_words[i] in cursewords) { 
             var word = negative_words[i];
             var list = cursewords[word]["synonyms"].split(", ");
+            var len = list.length - 1;
             synonyms[negative_words[i]] = cursewords[negative_words[i]]; // list of synonyms for negativewords[i]
-            new_phrase = new_phrase.replace(negative_words[i], list[1]);
+            new_phrase = new_phrase.replace(negative_words[i], list[Math.floor(Math.random() * len)]);
+            for (var j = 0; j < new_phrase.split(" ").length; j++){
+                //afinn_score += afinn[new_phrase.split(" ")[j]];
+                if (afinn[new_phrase.split(" ")[j]]){
+                    afinn_score += (afinn[new_phrase.split(" ")[j]]);
+                }
+            }
+            curse = true;
         } else {
+            curse = false;
             $.ajax({
                 type: 'GET',
                 url: base_link,
                 dataType: 'json',
                 crossDomain: true,
-                
                 success: function(data){
-                  var url_ = this.url;
-                  var split_link = url_.split(temp_base_link);
-                  new_phrase = new_phrase.replace(split_link[1].split("/json")[0], data["adjective"]["syn"][1]);
-                  console.log(new_phrase);   
+                    var url_ = this.url;
+                    var split_link = url_.split(temp_base_link);
+                    var len = data["adjective"]["syn"].length - 1;
+                    new_phrase = new_phrase.replace(split_link[1].split("/json")[0], data["adjective"]["syn"][Math.floor(Math.random() * len)]);
+                    for (var j = 0; j < new_phrase.split(" ").length; j++){
+                        if (afinn[new_phrase.split(" ")[j]]){
+                            afinn_score += (afinn[new_phrase.split(" ")[j]]);
+                        }
+                    }
+                    impword = new_phrase;
+                    get_synonyms(impword, false, true);
+                    //words_afinn_dict[new_phrase] = afinn_score;
                 }
-              });
+            });
         }
-        base_link = "http://words.bighugelabs.com/api/2/57fb326159dfcfd866e6778b33b451fb/";
+        base_link = "http://words.bighugelabs.com/api/2/7fe320022e2c6c0c2349d7401b242d9d/";
+    }
+    //calculate the afinn score here later 
+    if (bool_include && count <= 3){
+        words_afinn_dict[new_phrase] = {"afinn_score": afinn_score};
+        count += 1;
+        console.log(words_afinn_dict);
+    }
+    // if (count > 3){
+    //     print_dict();
+    // }
+    new_phrase = phrase;
+    bool_ = true;
+}
+
+function print_dict(){
+    if (words_afinn_dict.length != 0){
+        console.log(words_afinn_dict);
     }
 }
 
-
-/* 
-    function to replace all of the bad words with more positive words 
-*/
-function replace_bad_words(phrase, synonyms){
-    // new_phrase = phrase;
-    // for (var i = 0; i < negative_words.length; i++){
-    //     var word = negative_words[i];
-    //     console.log(synonyms[word]);
-    //     try {
-    //         console.log(synonyms[word]['synonyms']);
-    //     }
-    //     catch (err) {
-    //         console.log(synonyms[word]['synonyms'][1]);
-    //     }
-    //     new_phrase = new_phrase.replace(negative_words[i], synonyms[negative_words[i][0]]);
-    // }
-    // console.log(new_phrase);
-}
