@@ -1,28 +1,34 @@
 var synonyms = {}; //dictionary key being the word, value being list of snynonms
 var afinn = afinn_en; //afinn english
 var cursewords = cursewords_list["Sheet1"]; // cursewords 
-var base_link = "http://words.bighugelabs.com/api/2/a19aaf41789c45cd1ad88764a4640f07/";
+var base_link = "http://words.bighugelabs.com/api/2/787bdcc6a514ef29e35a75fd57d9e387/";
 var jsonResult;
 var data;
 var bool_ = false;
 var impword = "";
 var count = 0;
-var phrase = "I am a bad bitch getting dick";
 var negative_words = [];
 var words_afinn_dict = {};
 negative_words = [];
 var final_ans = [];
 var og_afinn_num = 0;
+var phrase = "";
 
-$( document ).ready(function()
-{
-    get_negative_words(phrase);
-});
+function main(){
+    console.log("here");
+    $( document ).ready(function()
+    {
+        phrase = document.getElementById('phrase').value;   
+        get_negative_words(phrase);
+    });
+}
+
 
 /*
     Returns a list of negative words
 */
 function get_negative_words(phrase){
+    console.log(phrase); 
     var phrase_words = phrase.split(" ");
     og_afinn_num = 0;
     for (var i = 0; i < phrase_words.length; i++){
@@ -50,7 +56,10 @@ function get_synonyms(phrase, bool_, bool_include){
     if (bool_include){
         //afinn_score = 0;
     }
+    var listings = document.getElementById('listings');
     for (i = 0; i < negative_words.length; i++){
+        var listing = listings.appendChild(document.createElement('div'));
+        listing.id = "listing-" + i;
         if (bool_ == false){
             i = i + 1;
             if (i == negative_words.length){
@@ -83,7 +92,7 @@ function get_synonyms(phrase, bool_, bool_include){
                 }
             });
         }
-        base_link = "http://words.bighugelabs.com/api/2/a19aaf41789c45cd1ad88764a4640f07/";
+        base_link = "http://words.bighugelabs.com/api/2/787bdcc6a514ef29e35a75fd57d9e387/";
     }
     if (bool_include){
         afinn_score = 0;
@@ -93,12 +102,24 @@ function get_synonyms(phrase, bool_, bool_include){
             }
         }
         words_afinn_dict[afinn_score] = new_phrase;
+        listing.innerHTML = new_phrase;
     }
     new_phrase = phrase;
 }
 
 function print_dict(){ 
-    words_afinn_dict[og_afinn_num] = phrase;
-    console.log(words_afinn_dict);
+    //words_afinn_dict[og_afinn_num] = phrase;
+    //console.log(words_afinn_dict);
+    
+    // var listings = document.getElementById('listings');
+    // var listing = listings.appendChild(document.createElement('div'));
+    // listing.className = 'item';
+    // listing.id = "listing-" + 0;
+    // listing.innerHTML = "HI";
+
+    // var link = listing.appendChild(document.createElement('a'));
+    // link.href = '#';
+    // link.className = 'title';
+    // link.dataPosition = 0;
 }
 
