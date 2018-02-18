@@ -59,7 +59,6 @@ function get_synonyms(phrase, bool_, bool_include){
     var listings = document.getElementById('listings');
     for (i = 0; i < negative_words.length; i++){
         var listing = listings.appendChild(document.createElement('div'));
-        listing.id = "listing-" + i;
         if (bool_ == false){
             i = i + 1;
             if (i == negative_words.length){
@@ -101,6 +100,7 @@ function get_synonyms(phrase, bool_, bool_include){
                 afinn_score += (afinn[new_phrase.split(" ")[j]]);
             }
         }
+        listing.id = "listing-" + i;
         words_afinn_dict[afinn_score] = new_phrase;
         listing.innerHTML = new_phrase;
     }
